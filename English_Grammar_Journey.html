@@ -146,10 +146,67 @@
   .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(120px);background:var(--verde-esc);color:#fff;font-weight:800;padding:14px 26px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:70;transition:.4s;font-size:16px;}
   .toast.show{transform:translateX(-50%) translateY(0);}
   footer{text-align:center;color:#aab6c2;font-size:12px;padding:16px;}
+
+
+/* ===== RANKING ===== */
+.btn-rank{background:var(--amarelo);color:#5a3d00;border-radius:50%;width:36px;height:36px;font-size:17px;border:none;cursor:pointer;font-weight:800;}
+#ranking{position:fixed;inset:0;z-index:120;background:rgba(20,40,70,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;}
+#ranking .rbox{background:#fff;border-radius:24px;max-width:440px;width:100%;max-height:88vh;overflow:auto;padding:24px 22px;box-shadow:0 24px 70px rgba(0,0,0,.35);}
+#ranking h2{margin:0 0 2px;color:var(--azul-esc);font-size:22px;text-align:center;}
+#ranking .rsub{text-align:center;color:#8697a8;font-size:13px;margin:0 0 16px;}
+.rrow{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;margin:7px 0;background:#f7f9fc;border:1px solid var(--borda);}
+.rrow.me{background:var(--verde-bg);border-color:var(--verde);}
+.rpos{font-weight:900;font-size:16px;width:34px;text-align:center;color:var(--azul-esc);}
+.rpos.top{font-size:20px;}
+.rname{flex:1;font-weight:800;color:var(--texto);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rname .youtag{font-size:10px;background:var(--verde);color:#fff;padding:1px 6px;border-radius:8px;margin-left:6px;vertical-align:middle;}
+.rstats{display:flex;gap:10px;font-size:12px;font-weight:800;}
+.rstats .xp{color:var(--laranja);}.rstats .st{color:#d9a400;}.rstats .dn{color:var(--verde-esc);}
+#ranking .rclose{width:100%;margin-top:14px;background:var(--azul);color:#fff;font-weight:800;border:none;border-radius:12px;padding:12px;cursor:pointer;font-family:inherit;font-size:15px;}
+#ranking .rmsg{text-align:center;color:#8697a8;padding:20px;font-size:14px;}
+
+/* ===== LOGIN ===== */
+#login{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#2f6db3,#1f4d80);display:flex;align-items:center;justify-content:center;padding:18px;}
+#login .lbox{background:#fff;border-radius:24px;max-width:380px;width:100%;padding:30px 26px;box-shadow:0 24px 70px rgba(0,0,0,.35);text-align:center;}
+#login .owl{font-size:56px;line-height:1;}
+#login h2{margin:6px 0 2px;color:#1f4d80;font-size:22px;}
+#login p.subl{margin:0 0 18px;color:#8697a8;font-size:14px;}
+.login-tabs{display:flex;gap:8px;margin-bottom:18px;}
+.login-tabs button{flex:1;padding:10px;border-radius:12px;font-weight:800;border:2px solid #dfe6ee;background:#fff;color:#9aa7b4;cursor:pointer;font-family:inherit;}
+.login-tabs button.on{border-color:#2f6db3;background:#eaf2fb;color:#1f4d80;}
+#login input{width:100%;font-size:15px;padding:12px 14px;border:2px solid #dfe6ee;border-radius:12px;margin-bottom:12px;font-family:inherit;outline:none;}
+#login input:focus{border-color:#2f6db3;box-shadow:0 0 0 3px rgba(47,109,179,.15);}
+#login .btn-go{width:100%;background:#58cc02;color:#fff;font-weight:800;font-size:17px;border-radius:14px;padding:13px;box-shadow:0 4px 0 #46a302;border:none;cursor:pointer;font-family:inherit;}
+#login .btn-go:active{transform:translateY(3px);box-shadow:none;}
+#login .msg{min-height:20px;font-size:13px;font-weight:700;margin-top:8px;}
+#login .msg.err{color:#e74c3c;}
+#login .msg.ok{color:#46a302;}
+#login .hint{margin-top:14px;font-size:11px;color:#aab6c2;}
+.user-chip{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;color:#1f4d80;}
+.btn-logout{background:#e5e9ee;color:#1f4d80;border-radius:50%;width:36px;height:36px;font-size:15px;border:none;cursor:pointer;}
+
 </style>
 </head>
 <body>
 <canvas id="fireworks"></canvas>
+<div id="login">
+  <div class="lbox">
+    <div class="owl">🦉</div>
+    <h2>English Grammar Journey</h2>
+    <p class="subl">Faça login para salvar seu progresso</p>
+    <div class="login-tabs">
+      <button id="tabLogin" class="on" onclick="loginTab('login')">Entrar</button>
+      <button id="tabSignup" onclick="loginTab('signup')">Criar conta</button>
+    </div>
+    <input type="text" id="luser" placeholder="Nome de usuário" autocomplete="username">
+    <input type="password" id="lpass" placeholder="Senha" autocomplete="current-password">
+    <input type="password" id="lpass2" placeholder="Confirme a senha" style="display:none" autocomplete="new-password">
+    <button class="btn-go" id="loginGo" onclick="loginSubmit()">Entrar ▶</button>
+    <div class="msg" id="loginMsg"></div>
+    <div class="hint">🔒 Seu progresso fica salvo neste navegador, vinculado à sua conta.</div>
+  </div>
+</div>
+
 <div class="topbar">
   <div class="logo">🦉 English Grammar Journey</div>
   <div class="stats">
@@ -157,9 +214,14 @@
     <div class="stat star"><span class="ico">⭐</span><span id="stStars">0</span></div>
     <div class="stat done"><span class="ico">✅</span><span id="stDone">0</span>/<span id="stTotal">0</span></div>
   </div>
+  <button class="btn-rank" id="btnRank" onclick="abrirRanking()" title="Ranking" style="display:none">🏆</button>
   <button class="btn-music" id="btnMusic" onclick="toggleMusica()" title="Música de fundo">🎵</button>
   <button class="btn-sound" id="btnSound" onclick="toggleSom()" title="Efeitos sonoros">🔊</button>
   <button class="btn-help" onclick="abrirTutorial(0)" title="Ver instruções">?</button>
+  <div class="user-chip" id="userBox" style="display:none">
+    <span>👤 <span id="userName"></span></span>
+    <button class="btn-logout" onclick="logout()" title="Sair">⎋</button>
+  </div>
 </div>
 <div class="timer-float" id="timerFloat">⏱ <span id="timerTxt">00:00</span></div>
 <div id="screen-map">
@@ -195,6 +257,14 @@
     </div>
     <button class="btn-iniciar" onclick="iniciarLicao()">▶ Iniciar</button>
     <button class="pre-close" onclick="fecharPrelesson()">Cancelar</button>
+  </div>
+</div>
+<div id="ranking">
+  <div class="rbox">
+    <h2>🏆 Ranking</h2>
+    <p class="rsub">Os melhores jogadores por XP</p>
+    <div id="rankList"><div class="rmsg">Carregando…</div></div>
+    <button class="rclose" onclick="fecharRanking()">Fechar</button>
   </div>
 </div>
 <div id="tutorial">
@@ -250,10 +320,10 @@ function animFogos(){fanim=true;cx.clearRect(0,0,cv.width,cv.height);fparts.forE
 function chuvaEstrelas(){const s=["⭐","🌟","✨","🎉","💫","🏆"];for(let i=0;i<28;i++){const el=document.createElement("div");el.className="confetti";el.textContent=s[Math.floor(Math.random()*s.length)];el.style.left=Math.random()*100+"vw";el.style.fontSize=(16+Math.random()*20)+"px";const d=2+Math.random()*2;el.style.animation="fall "+d+"s linear "+(Math.random()*0.6)+"s forwards";document.body.appendChild(el);setTimeout(function(){el.remove();},(d+1)*1000);}}
 function estrelasParaTopo(qtd){const alvo=document.querySelector(".stat.star");const r=alvo.getBoundingClientRect();for(let i=0;i<qtd;i++){const el=document.createElement("div");el.className="star-fly";el.textContent="⭐";el.style.left="50vw";el.style.top="40vh";document.body.appendChild(el);const dx=r.left+r.width/2-innerWidth/2,dy=r.top+r.height/2-innerHeight*0.4;setTimeout(function(){el.style.transition="transform .9s cubic-bezier(.3,.9,.4,1), opacity .9s";el.style.transform="translate("+dx+"px,"+dy+"px) scale(.4)";el.style.opacity="0";},400+i*180);setTimeout(function(){el.remove();},1700+i*180);}}
 /* ===== estado ===== */
-const KEY="egj_state_v3";
+let KEY=null;function userKey(u){return "egj_state_v3__"+u;}
 let STATE={seenTutorial:false,xp:0,chapters:{},som:true};
 function load(){try{const r=localStorage.getItem(KEY);if(r)STATE=JSON.parse(r);}catch(e){}}
-function save(){localStorage.setItem(KEY,JSON.stringify(STATE));}
+function save(){if(!KEY)return;localStorage.setItem(KEY,JSON.stringify(STATE));cloudSync();}
 load();
 const ORDER=Object.keys(CAPS);
 function chDone(id){return STATE.chapters[id]&&STATE.chapters[id].done;}
@@ -374,6 +444,176 @@ document.getElementById("btnMusic").classList.add("off");
 ["click","keydown","touchstart"].forEach(function(ev){document.addEventListener(ev,function(){ac();},{once:true});});
 renderMap();
 if(!STATE.seenTutorial){abrirTutorial(0);}
+
+/* ===== LOGIN / CONTAS (NUVEM + LOCAL) ===== */
+const SUPA_URL="__SUPABASE_URL__";
+const SUPA_KEY="__SUPABASE_KEY__";
+const CLOUD = (SUPA_URL.indexOf("http")===0) && (SUPA_KEY.length>10);
+const UKEY="egj_users", SKEY="egj_session";
+let LOGIN_MODE="login", SESSION=null;
+
+async function rpc(fn, body){
+  const r=await fetch(SUPA_URL+"/rest/v1/rpc/"+fn,{
+    method:"POST",
+    headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY,"Content-Type":"application/json"},
+    body:JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error("net");
+  return await r.json();
+}
+async function sha(txt){
+  try{ if(window.crypto&&crypto.subtle){ const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(txt)); return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,"0");}).join(""); } }catch(e){}
+  var hh=5381; for(var i=0;i<txt.length;i++){hh=((hh<<5)+hh)+txt.charCodeAt(i); hh|=0;} return "f"+(hh>>>0).toString(16);
+}
+function getUsers(){try{return JSON.parse(localStorage.getItem(UKEY))||{};}catch(e){return {};}}
+function setUsers(u){localStorage.setItem(UKEY,JSON.stringify(u));}
+function loginTab(m){LOGIN_MODE=m;document.getElementById("tabLogin").classList.toggle("on",m==="login");document.getElementById("tabSignup").classList.toggle("on",m==="signup");document.getElementById("lpass2").style.display=m==="signup"?"block":"none";document.getElementById("loginGo").textContent=m==="signup"?"Criar conta \u2728":"Entrar \u25B6";document.getElementById("loginMsg").textContent="";}
+function lmsg(t,ok){var m=document.getElementById("loginMsg");m.textContent=t;m.className="msg "+(ok?"ok":"err");}
+
+async function loginSubmit(){
+  var u=document.getElementById("luser").value.trim().toLowerCase();
+  var p=document.getElementById("lpass").value;
+  if(!u||!p){lmsg("Preencha usu\u00e1rio e senha.");return;}
+  var go=document.getElementById("loginGo"); go.disabled=true;
+  try{
+    if(LOGIN_MODE==="signup"){
+      var p2=document.getElementById("lpass2").value;
+      if(p.length<4){lmsg("A senha deve ter ao menos 4 caracteres.");return;}
+      if(p!==p2){lmsg("As senhas n\u00e3o coincidem.");return;}
+      if(CLOUD){
+        var reg=await rpc("egj_register",{p_user:u,p_pass:p});
+        if(!reg.ok){lmsg(reg.msg||"N\u00e3o foi poss\u00edvel criar a conta.");return;}
+        lmsg("Conta criada! Entrando...",true); await doLoginCloud(u,p);
+      } else {
+        var users=getUsers();
+        if(users[u]){lmsg("Este usu\u00e1rio j\u00e1 existe. Fa\u00e7a login.");return;}
+        users[u]={hash:await sha(p)}; setUsers(users);
+        lmsg("Conta criada! Entrando...",true); entrarLocal(u);
+      }
+    } else {
+      if(CLOUD){ await doLoginCloud(u,p); }
+      else {
+        var users=getUsers();
+        if(!users[u]){lmsg("Usu\u00e1rio n\u00e3o encontrado. Crie uma conta.");return;}
+        if(users[u].hash!==await sha(p)){lmsg("Senha incorreta.");return;}
+        entrarLocal(u);
+      }
+    }
+  }catch(e){ lmsg("Falha de conex\u00e3o. Tente novamente."); }
+  finally{ go.disabled=false; }
+}
+
+async function doLoginCloud(u,p){
+  var res=await rpc("egj_login",{p_user:u,p_pass:p});
+  if(!res.ok){lmsg(res.msg||"Falha no login.");return;}
+  SESSION={user:u,token:res.token};
+  localStorage.setItem(SKEY,JSON.stringify(SESSION));
+  KEY=userKey(u);
+  STATE={seenTutorial:false,xp:0,chapters:{},som:true};
+  if(res.state && Object.keys(res.state).length){STATE=res.state;localStorage.setItem(KEY,JSON.stringify(STATE));}
+  else { load(); }
+  finalizarEntrada(u);
+}
+function entrarLocal(u){
+  SESSION={user:u,token:null};
+  localStorage.setItem(SKEY,JSON.stringify(SESSION));
+  KEY=userKey(u);
+  STATE={seenTutorial:false,xp:0,chapters:{},som:true};
+  load(); finalizarEntrada(u);
+}
+function finalizarEntrada(u){
+  document.getElementById("login").style.display="none";
+  document.getElementById("userName").textContent=u;
+  document.getElementById("userBox").style.display="flex";
+  var br=document.getElementById("btnRank"); if(br) br.style.display="inline-block";
+  var tb=document.getElementById("btnSound");
+  if(STATE.som===false){somLigado=false;tb.textContent="\uD83D\uDD07";tb.classList.add("off");}
+  else {somLigado=true;tb.textContent="\uD83D\uDD0A";tb.classList.remove("off");}
+  document.getElementById("tutorial").style.display="none";
+  document.getElementById("screen-chapter").style.display="none";
+  document.getElementById("screen-map").style.display="block";
+  renderMap();
+  if(!STATE.seenTutorial){abrirTutorial(0);}
+}
+function logout(){ localStorage.removeItem(SKEY); location.reload(); }
+
+/* sincroniza com a nuvem (debounce) — chamado pelo save() */
+let cloudTimer=null;
+function cloudSync(){
+  if(!CLOUD||!SESSION||!SESSION.token) return;
+  clearTimeout(cloudTimer);
+  cloudTimer=setTimeout(function(){
+    rpc("egj_save",{p_user:SESSION.user,p_token:SESSION.token,p_state:STATE}).catch(function(){});
+  },800);
+}
+
+["lpass","lpass2","luser"].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener("keydown",function(e){if(e.key==="Enter")loginSubmit();});});
+
+/* auto-login */
+(async function(){
+  document.getElementById("tutorial").style.display="none";
+  var raw=localStorage.getItem(SKEY), sess=null;
+  try{ sess=JSON.parse(raw); }catch(e){ sess = raw ? {user:raw,token:null} : null; }
+  if(sess && sess.user){
+    if(CLOUD && sess.token){
+      try{
+        var res=await rpc("egj_load",{p_user:sess.user,p_token:sess.token});
+        if(res.ok){
+          SESSION=sess; KEY=userKey(sess.user);
+          STATE={seenTutorial:false,xp:0,chapters:{},som:true};
+          if(res.state && Object.keys(res.state).length){STATE=res.state;localStorage.setItem(KEY,JSON.stringify(STATE));}
+          else load();
+          finalizarEntrada(sess.user); return;
+        }
+      }catch(e){
+        /* offline: usa cache local */
+        SESSION=sess; KEY=userKey(sess.user);
+        STATE={seenTutorial:false,xp:0,chapters:{},som:true}; load();
+        finalizarEntrada(sess.user); return;
+      }
+    } else if(!CLOUD && getUsers()[sess.user]){
+      entrarLocal(sess.user); return;
+    }
+  }
+  document.getElementById("login").style.display="flex";
+})();
+
+
+/* ===== RANKING ===== */
+async function abrirRanking(){
+  var box=document.getElementById("ranking");
+  var list=document.getElementById("rankList");
+  box.style.display="flex";
+  if(!CLOUD){
+    list.innerHTML='<div class="rmsg">\U0001F310 O ranking fica dispon\u00edvel quando o app est\u00e1 conectado \u00e0 nuvem.<br><br>No modo local, o progresso n\u00e3o \u00e9 compartilhado entre jogadores.</div>';
+    return;
+  }
+  list.innerHTML='<div class="rmsg">Carregando\u2026</div>';
+  try{
+    var res=await rpc("egj_ranking",{p_limit:50});
+    var rows=(res&&res.rows)||[];
+    if(!rows.length){ list.innerHTML='<div class="rmsg">Ainda n\u00e3o h\u00e1 jogadores no ranking. Seja o primeiro! \U0001F680</div>'; return; }
+    var me=(SESSION&&SESSION.user)||"";
+    var medals=["\U0001F947","\U0001F948","\U0001F949"];
+    var html="";
+    rows.forEach(function(r,idx){
+      var pos=idx<3?medals[idx]:(idx+1);
+      var isMe=(r.username===me);
+      html+='<div class="rrow'+(isMe?' me':'')+'">'
+        + '<div class="rpos'+(idx<3?' top':'')+'">'+pos+'</div>'
+        + '<div class="rname">'+r.username+(isMe?'<span class="youtag">VOC\u00CA</span>':'')+'</div>'
+        + '<div class="rstats"><span class="xp">\u26A1'+(r.xp||0)+'</span>'
+        + '<span class="st">\u2B50'+(r.stars||0)+'</span>'
+        + '<span class="dn">\u2705'+(r.done||0)+'</span></div>'
+        + '</div>';
+    });
+    list.innerHTML=html;
+  }catch(e){
+    list.innerHTML='<div class="rmsg">N\u00e3o foi poss\u00edvel carregar o ranking agora. Tente novamente.</div>';
+  }
+}
+function fecharRanking(){ document.getElementById("ranking").style.display="none"; }
+
 </script>
 </body>
 </html>

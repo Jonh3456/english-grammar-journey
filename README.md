@@ -1,84 +1,94 @@
-# 🦉 English Grammar Journey — Streamlit
+# 🦉 English Grammar Journey — Streamlit + Nuvem (Supabase)
 
-App de gramática inglesa gamificado (estilo Duolingo) rodando no **Streamlit**,
-com os arquivos hospedados no **GitHub** — mesmo padrão do *English Journey*.
+App de gramática inglesa gamificado (estilo Duolingo) com **login por usuário** e
+**progresso salvo na nuvem** — o jogador entra com a mesma conta em qualquer
+dispositivo e continua de onde parou.
 
-- **82 capítulos** em 17 seções • **3 níveis** de dificuldade (Fácil / Médio / Difícil)
-- Teoria + exercícios interativos (digitar, marcar, escolher) + **resumo do capítulo**
-- Timer, música chiptune, fogos, contador de pontos, XP e estrelas
-- Progresso salvo no navegador (localStorage)
-
-> **Versão do app:** v3 (aprovada) — HTML já incluído neste pacote.
+- **82 capítulos** • **3 níveis** (Fácil / Médio / Difícil) • resumo do capítulo
+- Timer, música, fogos, contador de pontos, XP e estrelas
+- 🔐 **Login/registro** com senha (hash) • 💾 **save na nuvem** (Supabase/Postgres, grátis)
+- Funciona também em **modo local** se a nuvem não estiver configurada
 
 ---
 
 ## 📁 Estrutura do repositório
-
 ```
 english-grammar-journey/
-├── streamlit_app.py                 ← wrapper Streamlit (embute o HTML)
-├── English_Grammar_Journey.html     ← o app aprovado (v3)  ⚠️ nome idêntico
-├── requirements.txt                 ← dependências
+├── streamlit_app.py                 ← wrapper (injeta credenciais + embute o HTML)
+├── English_Grammar_Journey.html     ← app (versão nuvem)  ⚠️ nome idêntico
+├── supabase_schema.sql              ← script do banco (rodar 1x no Supabase)
+├── requirements.txt
 ├── .gitignore
 └── .streamlit/
-    └── config.toml                  ← tema (opcional)
+    ├── config.toml                  ← tema
+    └── secrets.toml.example         ← modelo dos segredos (NÃO subir o real)
 ```
-
-> ⚠️ O HTML precisa se chamar **`English_Grammar_Journey.html`** e ficar na
-> **mesma pasta** do `streamlit_app.py`. (Já está assim neste pacote.)
 
 ---
 
-## 🚀 Passo a passo (igual ao English Journey)
+## 🟢 PARTE 1 — Criar o banco de dados grátis (Supabase)
 
-### 1) Criar o repositório no GitHub
-1. Acesse [github.com](https://github.com) → **New repository**.
-2. Nome: `english-grammar-journey` → **Create repository**.
+1. Acesse **[supabase.com](https://supabase.com)** → **Start your project** → login com GitHub.
+2. **New project** → dê um nome (ex.: `egj`), crie uma senha do banco e escolha a região
+   mais próxima → **Create new project** (aguarde ~1 min).
+3. No menu lateral, abra **SQL Editor** → **New query**.
+4. **Cole todo o conteúdo de `supabase_schema.sql`** e clique **RUN** ▶.
+   Isso cria a tabela `egj_players` e as funções de login/registro/save.
+5. Pegue suas credenciais em **Project Settings → API**:
+   - **Project URL** → ex.: `https://abcd1234.supabase.co`
+   - **Project API keys → anon public** → uma chave longa `eyJ...`
 
-### 2) Subir os arquivos
-Pelo site do GitHub (**Add file → Upload files**) ou via Git:
+> 🔒 A chave **anon** é feita para ficar no cliente. A tabela está protegida:
+> o app só consegue chamar as **funções** (login/registro/save), não ler os dados direto.
+
+---
+
+## 🟢 PARTE 2 — Subir ao GitHub
+
+1. Crie o repositório `english-grammar-journey` no GitHub.
+2. Envie **todos os arquivos desta pasta** (incluindo a pasta `.streamlit`).
+   - ⚠️ **NÃO** suba `secrets.toml` (só o `.example`). O `.gitignore` já protege.
+
 ```bash
 git clone https://github.com/SEU_USUARIO/english-grammar-journey.git
 cd english-grammar-journey
-
-# copie para cá o conteúdo desta pasta (os 5 itens, incluindo a pasta .streamlit)
-
+# copie os arquivos para cá
 git add .
-git commit -m "English Grammar Journey no Streamlit"
+git commit -m "English Grammar Journey — Streamlit + Supabase"
 git push
 ```
 
-> 💡 A pasta precisa se chamar **`.streamlit`** (com ponto na frente) e conter o `config.toml`.
-> Ao subir pelo site do GitHub, arraste também o arquivo de dentro dela.
+---
 
-### 3) Publicar no Streamlit Community Cloud
-1. Acesse [share.streamlit.io](https://share.streamlit.io) e faça login com o GitHub.
-2. **New app** → selecione o repositório `english-grammar-journey`.
-3. **Branch:** `main` • **Main file path:** `streamlit_app.py`.
-4. **Deploy!** 🎉
+## 🟢 PARTE 3 — Publicar no Streamlit + configurar segredos
 
-Em ~1 min o app fica no ar num link `https://SEU-APP.streamlit.app`.
+1. Acesse **[share.streamlit.io](https://share.streamlit.io)** → **New app**.
+2. Repositório: `english-grammar-journey` • Branch: `main` • Main file: `streamlit_app.py`.
+3. Antes (ou depois) do deploy, abra **Manage app → Settings → Secrets** e cole:
+   ```toml
+   SUPABASE_URL = "https://SEU-PROJETO.supabase.co"
+   SUPABASE_ANON_KEY = "eyJ...sua-chave-anon..."
+   ```
+4. **Save** → o app reinicia e o login/nuvem passam a funcionar. 🎉
 
 ---
 
 ## 🖥️ Rodar localmente (opcional)
 ```bash
 pip install -r requirements.txt
+# crie .streamlit/secrets.toml a partir do .example e preencha suas credenciais
 streamlit run streamlit_app.py
 ```
-Abre em `http://localhost:8501`.
 
 ---
 
-## 🔊 Áudio
-Os navegadores só liberam som **após o primeiro clique** na página (política padrão).
-Ao abrir, clique em qualquer botão (ou no 🎵) para ativar música e efeitos.
+## 🔄 Como funciona o salvamento
+- Ao **entrar**, o app baixa seu progresso da nuvem.
+- A cada acerto/conclusão, ele **envia o progresso** para a nuvem (com pequeno atraso, para não sobrecarregar).
+- Um **cache local** (localStorage) é mantido — se ficar sem internet, o jogo continua e sincroniza quando voltar.
+- Sessão válida por **60 dias** (auto-login). Botão **Sair (⎋)** encerra a sessão.
 
-## 💾 Progresso
-Salvo no **localStorage do navegador** (chave `egj_state_v3`), por dispositivo.
-Não é compartilhado entre usuários.
-
-## 🔄 Atualizar depois
-1. Substitua `English_Grammar_Journey.html` no repositório pela nova versão aprovada.
-2. `git add . && git commit -m "nova versão" && git push`
-3. O Streamlit Cloud atualiza sozinho.
+## 🧰 Solução de problemas
+- **"Falha de conexão" no login:** confira `SUPABASE_URL`/`SUPABASE_ANON_KEY` nos Secrets e se o `supabase_schema.sql` foi executado.
+- **App em modo local (sem nuvem):** significa que os secrets não chegaram — revise a etapa 3.
+- **Áudio mudo:** clique em qualquer botão (ou no 🎵) — navegadores só liberam som após o 1º clique.
