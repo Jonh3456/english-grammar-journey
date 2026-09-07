@@ -147,7 +147,6 @@
   .toast.show{transform:translateX(-50%) translateY(0);}
   footer{text-align:center;color:#aab6c2;font-size:12px;padding:16px;}
 
-
 /* ===== RANKING ===== */
 .btn-rank{background:var(--amarelo);color:#5a3d00;border-radius:50%;width:36px;height:36px;font-size:17px;border:none;cursor:pointer;font-weight:800;}
 #ranking{position:fixed;inset:0;z-index:120;background:rgba(20,40,70,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;}
@@ -163,8 +162,7 @@
 .rstats{display:flex;gap:10px;font-size:12px;font-weight:800;}
 .rstats .xp{color:var(--laranja);}.rstats .st{color:#d9a400;}.rstats .dn{color:var(--verde-esc);}
 #ranking .rclose{width:100%;margin-top:14px;background:var(--azul);color:#fff;font-weight:800;border:none;border-radius:12px;padding:12px;cursor:pointer;font-family:inherit;font-size:15px;}
-#ranking .rmsg{text-align:center;color:#8697a8;padding:20px;font-size:14px;}
-
+#ranking .rmsg{text-align:center;color:#8697a8;padding:20px;font-size:14px;line-height:1.5;}
 /* ===== LOGIN ===== */
 #login{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#2f6db3,#1f4d80);display:flex;align-items:center;justify-content:center;padding:18px;}
 #login .lbox{background:#fff;border-radius:24px;max-width:380px;width:100%;padding:30px 26px;box-shadow:0 24px 70px rgba(0,0,0,.35);text-align:center;}
@@ -178,6 +176,7 @@
 #login input:focus{border-color:#2f6db3;box-shadow:0 0 0 3px rgba(47,109,179,.15);}
 #login .btn-go{width:100%;background:#58cc02;color:#fff;font-weight:800;font-size:17px;border-radius:14px;padding:13px;box-shadow:0 4px 0 #46a302;border:none;cursor:pointer;font-family:inherit;}
 #login .btn-go:active{transform:translateY(3px);box-shadow:none;}
+#login .btn-go:disabled{opacity:.6;cursor:default;}
 #login .msg{min-height:20px;font-size:13px;font-weight:700;margin-top:8px;}
 #login .msg.err{color:#e74c3c;}
 #login .msg.ok{color:#46a302;}
@@ -203,7 +202,15 @@
     <input type="password" id="lpass2" placeholder="Confirme a senha" style="display:none" autocomplete="new-password">
     <button class="btn-go" id="loginGo" onclick="loginSubmit()">Entrar ▶</button>
     <div class="msg" id="loginMsg"></div>
-    <div class="hint">🔒 Seu progresso fica salvo neste navegador, vinculado à sua conta.</div>
+    <div class="hint">🔒 Seu progresso fica salvo na sua conta.</div>
+  </div>
+</div>
+<div id="ranking">
+  <div class="rbox">
+    <h2>🏆 Ranking</h2>
+    <p class="rsub">Os melhores jogadores por XP</p>
+    <div id="rankList"><div class="rmsg">Carregando…</div></div>
+    <button class="rclose" onclick="fecharRanking()">Fechar</button>
   </div>
 </div>
 
@@ -218,10 +225,7 @@
   <button class="btn-music" id="btnMusic" onclick="toggleMusica()" title="Música de fundo">🎵</button>
   <button class="btn-sound" id="btnSound" onclick="toggleSom()" title="Efeitos sonoros">🔊</button>
   <button class="btn-help" onclick="abrirTutorial(0)" title="Ver instruções">?</button>
-  <div class="user-chip" id="userBox" style="display:none">
-    <span>👤 <span id="userName"></span></span>
-    <button class="btn-logout" onclick="logout()" title="Sair">⎋</button>
-  </div>
+  <div class="user-chip" id="userBox" style="display:none"><span>👤 <span id="userName"></span></span><button class="btn-logout" onclick="logout()" title="Sair">⎋</button></div>
 </div>
 <div class="timer-float" id="timerFloat">⏱ <span id="timerTxt">00:00</span></div>
 <div id="screen-map">
@@ -257,14 +261,6 @@
     </div>
     <button class="btn-iniciar" onclick="iniciarLicao()">▶ Iniciar</button>
     <button class="pre-close" onclick="fecharPrelesson()">Cancelar</button>
-  </div>
-</div>
-<div id="ranking">
-  <div class="rbox">
-    <h2>🏆 Ranking</h2>
-    <p class="rsub">Os melhores jogadores por XP</p>
-    <div id="rankList"><div class="rmsg">Carregando…</div></div>
-    <button class="rclose" onclick="fecharRanking()">Fechar</button>
   </div>
 </div>
 <div id="tutorial">
@@ -445,64 +441,71 @@ document.getElementById("btnMusic").classList.add("off");
 renderMap();
 if(!STATE.seenTutorial){abrirTutorial(0);}
 
-/* ===== LOGIN / CONTAS (NUVEM + LOCAL) ===== */
-const SUPA_URL="__SUPABASE_URL__";
+/* ===== CONTAS + NUVEM (Supabase) + RANKING ===== */
+const SUPA_URL=("__SUPABASE_URL__"||"").replace(/\/+$/,"");
 const SUPA_KEY="__SUPABASE_KEY__";
-const CLOUD = (SUPA_URL.indexOf("http")===0) && (SUPA_KEY.length>10);
-const UKEY="egj_users", SKEY="egj_session";
-let LOGIN_MODE="login", SESSION=null;
+const CLOUD=(SUPA_URL.indexOf("http")===0)&&(SUPA_KEY.length>10);
+const UKEY="egj_users",SKEY="egj_session";
+let LOGIN_MODE="login",SESSION=null;
 
-async function rpc(fn, body){
-  const r=await fetch(SUPA_URL+"/rest/v1/rpc/"+fn,{
-    method:"POST",
-    headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY,"Content-Type":"application/json"},
-    body:JSON.stringify(body)
-  });
-  if(!r.ok) throw new Error("net");
+async function rpc(fn,body){
+  var r;
+  try{
+    r=await fetch(SUPA_URL+"/rest/v1/rpc/"+fn,{method:"POST",
+      headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY,"Content-Type":"application/json"},
+      body:JSON.stringify(body)});
+  }catch(e){ var er=new Error("Sem rede: confira a URL do Supabase e sua internet."); er.code="network"; throw er; }
+  if(!r.ok){
+    var txt=""; try{txt=await r.text();}catch(e){}
+    var msg="Erro "+r.status;
+    if(r.status===404) msg="Função não encontrada (404): rode o supabase_schema.sql no SQL Editor do Supabase.";
+    else if(r.status===401||r.status===403) msg="Chave inválida ("+r.status+"): confira a SUPABASE_ANON_KEY nos Secrets.";
+    else if(txt) msg="Erro "+r.status+": "+txt.slice(0,140);
+    var e2=new Error(msg); e2.code="http"; throw e2;
+  }
   return await r.json();
 }
 async function sha(txt){
   try{ if(window.crypto&&crypto.subtle){ const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(txt)); return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,"0");}).join(""); } }catch(e){}
-  var hh=5381; for(var i=0;i<txt.length;i++){hh=((hh<<5)+hh)+txt.charCodeAt(i); hh|=0;} return "f"+(hh>>>0).toString(16);
+  var hh=5381; for(var i=0;i<txt.length;i++){hh=((hh<<5)+hh)+txt.charCodeAt(i);hh|=0;} return "f"+(hh>>>0).toString(16);
 }
 function getUsers(){try{return JSON.parse(localStorage.getItem(UKEY))||{};}catch(e){return {};}}
 function setUsers(u){localStorage.setItem(UKEY,JSON.stringify(u));}
-function loginTab(m){LOGIN_MODE=m;document.getElementById("tabLogin").classList.toggle("on",m==="login");document.getElementById("tabSignup").classList.toggle("on",m==="signup");document.getElementById("lpass2").style.display=m==="signup"?"block":"none";document.getElementById("loginGo").textContent=m==="signup"?"Criar conta \u2728":"Entrar \u25B6";document.getElementById("loginMsg").textContent="";}
+function loginTab(m){LOGIN_MODE=m;document.getElementById("tabLogin").classList.toggle("on",m==="login");document.getElementById("tabSignup").classList.toggle("on",m==="signup");document.getElementById("lpass2").style.display=m==="signup"?"block":"none";document.getElementById("loginGo").textContent=m==="signup"?"Criar conta ✨":"Entrar ▶";document.getElementById("loginMsg").textContent="";}
 function lmsg(t,ok){var m=document.getElementById("loginMsg");m.textContent=t;m.className="msg "+(ok?"ok":"err");}
 
 async function loginSubmit(){
   var u=document.getElementById("luser").value.trim().toLowerCase();
   var p=document.getElementById("lpass").value;
-  if(!u||!p){lmsg("Preencha usu\u00e1rio e senha.");return;}
+  if(!u||!p){lmsg("Preencha usuário e senha.");return;}
   var go=document.getElementById("loginGo"); go.disabled=true;
   try{
     if(LOGIN_MODE==="signup"){
       var p2=document.getElementById("lpass2").value;
       if(p.length<4){lmsg("A senha deve ter ao menos 4 caracteres.");return;}
-      if(p!==p2){lmsg("As senhas n\u00e3o coincidem.");return;}
+      if(p!==p2){lmsg("As senhas não coincidem.");return;}
       if(CLOUD){
         var reg=await rpc("egj_register",{p_user:u,p_pass:p});
-        if(!reg.ok){lmsg(reg.msg||"N\u00e3o foi poss\u00edvel criar a conta.");return;}
+        if(!reg.ok){lmsg(reg.msg||"Não foi possível criar a conta.");return;}
         lmsg("Conta criada! Entrando...",true); await doLoginCloud(u,p);
-      } else {
+      }else{
         var users=getUsers();
-        if(users[u]){lmsg("Este usu\u00e1rio j\u00e1 existe. Fa\u00e7a login.");return;}
+        if(users[u]){lmsg("Este usuário já existe. Faça login.");return;}
         users[u]={hash:await sha(p)}; setUsers(users);
         lmsg("Conta criada! Entrando...",true); entrarLocal(u);
       }
-    } else {
+    }else{
       if(CLOUD){ await doLoginCloud(u,p); }
-      else {
+      else{
         var users=getUsers();
-        if(!users[u]){lmsg("Usu\u00e1rio n\u00e3o encontrado. Crie uma conta.");return;}
+        if(!users[u]){lmsg("Usuário não encontrado. Crie uma conta.");return;}
         if(users[u].hash!==await sha(p)){lmsg("Senha incorreta.");return;}
         entrarLocal(u);
       }
     }
-  }catch(e){ lmsg("Falha de conex\u00e3o. Tente novamente."); }
+  }catch(e){ lmsg(e&&e.message?e.message:"Falha de conexão. Tente novamente."); }
   finally{ go.disabled=false; }
 }
-
 async function doLoginCloud(u,p){
   var res=await rpc("egj_login",{p_user:u,p_pass:p});
   if(!res.ok){lmsg(res.msg||"Falha no login.");return;}
@@ -510,8 +513,8 @@ async function doLoginCloud(u,p){
   localStorage.setItem(SKEY,JSON.stringify(SESSION));
   KEY=userKey(u);
   STATE={seenTutorial:false,xp:0,chapters:{},som:true};
-  if(res.state && Object.keys(res.state).length){STATE=res.state;localStorage.setItem(KEY,JSON.stringify(STATE));}
-  else { load(); }
+  if(res.state&&Object.keys(res.state).length){STATE=res.state;localStorage.setItem(KEY,JSON.stringify(STATE));}
+  else{ load(); }
   finalizarEntrada(u);
 }
 function entrarLocal(u){
@@ -527,8 +530,8 @@ function finalizarEntrada(u){
   document.getElementById("userBox").style.display="flex";
   var br=document.getElementById("btnRank"); if(br) br.style.display="inline-block";
   var tb=document.getElementById("btnSound");
-  if(STATE.som===false){somLigado=false;tb.textContent="\uD83D\uDD07";tb.classList.add("off");}
-  else {somLigado=true;tb.textContent="\uD83D\uDD0A";tb.classList.remove("off");}
+  if(STATE.som===false){somLigado=false;tb.textContent="🔇";tb.classList.add("off");}
+  else{somLigado=true;tb.textContent="🔊";tb.classList.remove("off");}
   document.getElementById("tutorial").style.display="none";
   document.getElementById("screen-chapter").style.display="none";
   document.getElementById("screen-map").style.display="block";
@@ -536,83 +539,54 @@ function finalizarEntrada(u){
   if(!STATE.seenTutorial){abrirTutorial(0);}
 }
 function logout(){ localStorage.removeItem(SKEY); location.reload(); }
-
-/* sincroniza com a nuvem (debounce) — chamado pelo save() */
 let cloudTimer=null;
 function cloudSync(){
   if(!CLOUD||!SESSION||!SESSION.token) return;
   clearTimeout(cloudTimer);
-  cloudTimer=setTimeout(function(){
-    rpc("egj_save",{p_user:SESSION.user,p_token:SESSION.token,p_state:STATE}).catch(function(){});
-  },800);
+  cloudTimer=setTimeout(function(){ rpc("egj_save",{p_user:SESSION.user,p_token:SESSION.token,p_state:STATE}).catch(function(){}); },800);
 }
-
 ["lpass","lpass2","luser"].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener("keydown",function(e){if(e.key==="Enter")loginSubmit();});});
 
-/* auto-login */
-(async function(){
-  document.getElementById("tutorial").style.display="none";
-  var raw=localStorage.getItem(SKEY), sess=null;
-  try{ sess=JSON.parse(raw); }catch(e){ sess = raw ? {user:raw,token:null} : null; }
-  if(sess && sess.user){
-    if(CLOUD && sess.token){
-      try{
-        var res=await rpc("egj_load",{p_user:sess.user,p_token:sess.token});
-        if(res.ok){
-          SESSION=sess; KEY=userKey(sess.user);
-          STATE={seenTutorial:false,xp:0,chapters:{},som:true};
-          if(res.state && Object.keys(res.state).length){STATE=res.state;localStorage.setItem(KEY,JSON.stringify(STATE));}
-          else load();
-          finalizarEntrada(sess.user); return;
-        }
-      }catch(e){
-        /* offline: usa cache local */
-        SESSION=sess; KEY=userKey(sess.user);
-        STATE={seenTutorial:false,xp:0,chapters:{},som:true}; load();
-        finalizarEntrada(sess.user); return;
-      }
-    } else if(!CLOUD && getUsers()[sess.user]){
-      entrarLocal(sess.user); return;
-    }
-  }
-  document.getElementById("login").style.display="flex";
-})();
-
-
-/* ===== RANKING ===== */
+/* ---- RANKING ---- */
 async function abrirRanking(){
-  var box=document.getElementById("ranking");
-  var list=document.getElementById("rankList");
+  var box=document.getElementById("ranking"),list=document.getElementById("rankList");
   box.style.display="flex";
-  if(!CLOUD){
-    list.innerHTML='<div class="rmsg">\U0001F310 O ranking fica dispon\u00edvel quando o app est\u00e1 conectado \u00e0 nuvem.<br><br>No modo local, o progresso n\u00e3o \u00e9 compartilhado entre jogadores.</div>';
-    return;
-  }
-  list.innerHTML='<div class="rmsg">Carregando\u2026</div>';
+  if(!CLOUD){ list.innerHTML='<div class="rmsg">🌐 O ranking fica disponível quando o app está conectado à nuvem.<br><br>No modo local o progresso não é compartilhado entre jogadores.</div>'; return; }
+  list.innerHTML='<div class="rmsg">Carregando…</div>';
   try{
     var res=await rpc("egj_ranking",{p_limit:50});
     var rows=(res&&res.rows)||[];
-    if(!rows.length){ list.innerHTML='<div class="rmsg">Ainda n\u00e3o h\u00e1 jogadores no ranking. Seja o primeiro! \U0001F680</div>'; return; }
-    var me=(SESSION&&SESSION.user)||"";
-    var medals=["\U0001F947","\U0001F948","\U0001F949"];
-    var html="";
+    if(!rows.length){ list.innerHTML='<div class="rmsg">Ainda não há jogadores no ranking. Seja o primeiro! 🚀</div>'; return; }
+    var me=(SESSION&&SESSION.user)||"", medals=["🥇","🥈","🥉"], html="";
     rows.forEach(function(r,idx){
-      var pos=idx<3?medals[idx]:(idx+1);
-      var isMe=(r.username===me);
-      html+='<div class="rrow'+(isMe?' me':'')+'">'
-        + '<div class="rpos'+(idx<3?' top':'')+'">'+pos+'</div>'
-        + '<div class="rname">'+r.username+(isMe?'<span class="youtag">VOC\u00CA</span>':'')+'</div>'
-        + '<div class="rstats"><span class="xp">\u26A1'+(r.xp||0)+'</span>'
-        + '<span class="st">\u2B50'+(r.stars||0)+'</span>'
-        + '<span class="dn">\u2705'+(r.done||0)+'</span></div>'
-        + '</div>';
+      var pos=idx<3?medals[idx]:(idx+1), isMe=(r.username===me);
+      html+='<div class="rrow'+(isMe?' me':'')+'"><div class="rpos'+(idx<3?' top':'')+'">'+pos+'</div>'
+        +'<div class="rname">'+r.username+(isMe?'<span class="youtag">VOCÊ</span>':'')+'</div>'
+        +'<div class="rstats"><span class="xp">⚡'+(r.xp||0)+'</span><span class="st">⭐'+(r.stars||0)+'</span><span class="dn">✅'+(r.done||0)+'</span></div></div>';
     });
     list.innerHTML=html;
-  }catch(e){
-    list.innerHTML='<div class="rmsg">N\u00e3o foi poss\u00edvel carregar o ranking agora. Tente novamente.</div>';
-  }
+  }catch(e){ list.innerHTML='<div class="rmsg">'+(e&&e.message?e.message:"Não foi possível carregar o ranking.")+'</div>'; }
 }
 function fecharRanking(){ document.getElementById("ranking").style.display="none"; }
+
+/* ---- auto-login ---- */
+(async function(){
+  document.getElementById("tutorial").style.display="none";
+  var raw=localStorage.getItem(SKEY),sess=null;
+  try{ sess=JSON.parse(raw); }catch(e){ sess=raw?{user:raw,token:null}:null; }
+  if(sess&&sess.user){
+    if(CLOUD&&sess.token){
+      try{
+        var res=await rpc("egj_load",{p_user:sess.user,p_token:sess.token});
+        if(res.ok){ SESSION=sess; KEY=userKey(sess.user);
+          STATE={seenTutorial:false,xp:0,chapters:{},som:true};
+          if(res.state&&Object.keys(res.state).length){STATE=res.state;localStorage.setItem(KEY,JSON.stringify(STATE));} else load();
+          finalizarEntrada(sess.user); return; }
+      }catch(e){ SESSION=sess; KEY=userKey(sess.user); STATE={seenTutorial:false,xp:0,chapters:{},som:true}; load(); finalizarEntrada(sess.user); return; }
+    }else if(!CLOUD&&getUsers()[sess.user]){ entrarLocal(sess.user); return; }
+  }
+  document.getElementById("login").style.display="flex";
+})();
 
 </script>
 </body>
