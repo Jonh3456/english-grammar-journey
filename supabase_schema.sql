@@ -1,7 +1,7 @@
 -- ============================================================
 -- English Grammar Journey — Banco de dados (Supabase / Postgres)
 -- Cole TODO este conteúdo no SQL Editor do Supabase e clique RUN.
--- Cria a tabela de jogadores + funções seguras de login/registro/save.
+-- Cria a tabela de jogadores + funções seguras de login/registro/save/ranking.
 -- ============================================================
 
 create extension if not exists pgcrypto;
@@ -91,17 +91,9 @@ begin
   return json_build_object('ok', true, 'state', r.state);
 end $$;
 
--- Permite que o cliente (chave anônima) execute SOMENTE estas funções.
-grant execute on function egj_register(text, text)       to anon;
-grant execute on function egj_login(text, text)          to anon;
-grant execute on function egj_save(text, uuid, jsonb)    to anon;
-grant execute on function egj_load(text, uuid)           to anon;
-
--- ============================================================
--- RANKING entre usuários (top jogadores por XP)
--- Retorna lista pública: apelido, XP, estrelas e capítulos concluídos.
+-- ---------- RANKING (top jogadores por XP) ----------
+-- Retorna lista pública: usuário, XP, estrelas e capítulos concluídos.
 -- Não expõe senhas nem tokens.
--- ============================================================
 create or replace function egj_ranking(p_limit int default 50)
 returns json language plpgsql security definer as $$
 declare res json;
@@ -110,10 +102,10 @@ begin
   from (
     select
       username,
-      coalesce((state->>'xp')::int, 0)                                as xp,
+      coalesce((state->>'xp')::int, 0) as xp,
       coalesce((select count(*) from jsonb_object_keys(
                  coalesce(state->'chapters','{}'::jsonb)) k
-                 where (state->'chapters'->k->>'done')::boolean), 0)  as done,
+                 where (state->'chapters'->k->>'done')::boolean), 0) as done,
       coalesce((select sum( coalesce((state->'chapters'->k->>'stars')::int,0) )
                  from jsonb_object_keys(coalesce(state->'chapters','{}'::jsonb)) k), 0) as stars
     from egj_players
@@ -124,4 +116,9 @@ begin
   return json_build_object('ok', true, 'rows', res);
 end $$;
 
-grant execute on function egj_ranking(int) to anon;
+-- Permite que o cliente (chave anônima) execute SOMENTE estas funções.
+grant execute on function egj_register(text, text)       to anon;
+grant execute on function egj_login(text, text)          to anon;
+grant execute on function egj_save(text, uuid, jsonb)    to anon;
+grant execute on function egj_load(text, uuid)           to anon;
+grant execute on function egj_ranking(int)               to anon;
