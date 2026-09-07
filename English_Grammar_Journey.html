@@ -106,7 +106,7 @@
   .finish-card{text-align:center;background:linear-gradient(135deg,#fff,#f4faff);border:2px dashed var(--azul);}
   .btn-finish{background:var(--laranja);color:#fff;font-weight:800;font-size:16px;border-radius:14px;padding:14px 30px;box-shadow:0 4px 0 #cc7800;}
   .btn-finish:active{transform:translateY(3px);box-shadow:none;}
-  #prelesson{display:none;position:fixed;inset:0;z-index:40;background:rgba(31,77,128,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:18px;}
+  #prelesson{display:none;position:fixed;inset:0;z-index:40;background:rgba(31,77,128,.55);backdrop-filter:blur(3px);align-items:flex-start;justify-content:center;padding:24px 18px;overflow:auto;}
   .pre-box{background:#fff;border-radius:22px;max-width:430px;width:100%;padding:26px 24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:92vh;overflow:auto;}
   .pre-box h3{margin:0 0 4px;font-size:20px;color:var(--azul-esc);}
   .pre-box .lbl{font-size:13px;color:#8697a8;margin:14px 0 8px;font-weight:700;text-align:left;}
@@ -124,7 +124,7 @@
   .timer-float{position:sticky;top:60px;z-index:25;margin:0 auto 0;width:fit-content;background:var(--azul-esc);color:#fff;font-weight:800;padding:6px 16px;border-radius:20px;font-size:15px;box-shadow:0 4px 12px rgba(0,0,0,.2);display:none;}
   .timer-float.warn{background:var(--laranja);animation:pisca .6s infinite;}
   @keyframes pisca{50%{opacity:.4;}}
-  #tutorial{display:none;position:fixed;inset:0;z-index:60;background:rgba(20,40,70,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:18px;}
+  #tutorial{display:none;position:fixed;inset:0;z-index:60;background:rgba(20,40,70,.75);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:24px 18px;overflow:auto;}
   .tut-box{background:#fff;border-radius:24px;max-width:440px;width:100%;padding:0 0 22px;text-align:center;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.35);}
   .tut-visual{height:180px;background:linear-gradient(135deg,var(--azul),var(--azul-esc));display:flex;align-items:center;justify-content:center;position:relative;color:#fff;}
   .tut-visual .big{font-size:76px;}
@@ -149,7 +149,7 @@
 
 /* ===== RANKING ===== */
 .btn-rank{background:var(--amarelo);color:#5a3d00;border-radius:50%;width:36px;height:36px;font-size:17px;border:none;cursor:pointer;font-weight:800;}
-#ranking{position:fixed;inset:0;z-index:120;background:rgba(20,40,70,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;}
+#ranking{position:fixed;inset:0;z-index:120;background:rgba(20,40,70,.7);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow:auto;}
 #ranking .rbox{background:#fff;border-radius:24px;max-width:440px;width:100%;max-height:88vh;overflow:auto;padding:24px 22px;box-shadow:0 24px 70px rgba(0,0,0,.35);}
 #ranking h2{margin:0 0 2px;color:var(--azul-esc);font-size:22px;text-align:center;}
 #ranking .rsub{text-align:center;color:#8697a8;font-size:13px;margin:0 0 16px;}
@@ -164,7 +164,7 @@
 #ranking .rclose{width:100%;margin-top:14px;background:var(--azul);color:#fff;font-weight:800;border:none;border-radius:12px;padding:12px;cursor:pointer;font-family:inherit;font-size:15px;}
 #ranking .rmsg{text-align:center;color:#8697a8;padding:20px;font-size:14px;line-height:1.5;}
 /* ===== LOGIN ===== */
-#login{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#2f6db3,#1f4d80);display:flex;align-items:center;justify-content:center;padding:18px;}
+#login{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#2f6db3,#1f4d80);display:flex;align-items:flex-start;justify-content:center;padding:24px 18px;overflow:auto;}
 #login .lbox{background:#fff;border-radius:24px;max-width:380px;width:100%;padding:30px 26px;box-shadow:0 24px 70px rgba(0,0,0,.35);text-align:center;}
 #login .owl{font-size:56px;line-height:1;}
 #login h2{margin:6px 0 2px;color:#1f4d80;font-size:22px;}
@@ -447,7 +447,6 @@ const SUPA_KEY="__SUPABASE_KEY__";
 const CLOUD=(SUPA_URL.indexOf("http")===0)&&(SUPA_KEY.length>10);
 const UKEY="egj_users",SKEY="egj_session";
 let LOGIN_MODE="login",SESSION=null;
-
 async function rpc(fn,body){
   var r;
   try{
@@ -473,7 +472,6 @@ function getUsers(){try{return JSON.parse(localStorage.getItem(UKEY))||{};}catch
 function setUsers(u){localStorage.setItem(UKEY,JSON.stringify(u));}
 function loginTab(m){LOGIN_MODE=m;document.getElementById("tabLogin").classList.toggle("on",m==="login");document.getElementById("tabSignup").classList.toggle("on",m==="signup");document.getElementById("lpass2").style.display=m==="signup"?"block":"none";document.getElementById("loginGo").textContent=m==="signup"?"Criar conta ✨":"Entrar ▶";document.getElementById("loginMsg").textContent="";}
 function lmsg(t,ok){var m=document.getElementById("loginMsg");m.textContent=t;m.className="msg "+(ok?"ok":"err");}
-
 async function loginSubmit(){
   var u=document.getElementById("luser").value.trim().toLowerCase();
   var p=document.getElementById("lpass").value;
@@ -546,8 +544,6 @@ function cloudSync(){
   cloudTimer=setTimeout(function(){ rpc("egj_save",{p_user:SESSION.user,p_token:SESSION.token,p_state:STATE}).catch(function(){}); },800);
 }
 ["lpass","lpass2","luser"].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener("keydown",function(e){if(e.key==="Enter")loginSubmit();});});
-
-/* ---- RANKING ---- */
 async function abrirRanking(){
   var box=document.getElementById("ranking"),list=document.getElementById("rankList");
   box.style.display="flex";
@@ -568,8 +564,6 @@ async function abrirRanking(){
   }catch(e){ list.innerHTML='<div class="rmsg">'+(e&&e.message?e.message:"Não foi possível carregar o ranking.")+'</div>'; }
 }
 function fecharRanking(){ document.getElementById("ranking").style.display="none"; }
-
-/* ---- auto-login ---- */
 (async function(){
   document.getElementById("tutorial").style.display="none";
   var raw=localStorage.getItem(SKEY),sess=null;
